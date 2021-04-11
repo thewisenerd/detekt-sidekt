@@ -3,10 +3,10 @@ package io.github.thewisenerd.linters.sidekt.rules
 import io.github.thewisenerd.linters.sidekt.helpers.Debugger
 import io.gitlab.arturbosch.detekt.api.*
 import org.jetbrains.kotlin.builtins.isSuspendFunctionTypeOrSubtype
-import org.jetbrains.kotlin.codegen.FunctionCodegen.getThrownExceptions
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
@@ -17,10 +17,14 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getTextWithLocation
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.constants.ArrayValue
+import org.jetbrains.kotlin.resolve.constants.KClassValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
 class BlockingCallContext(config: Config) : Rule(config) {
     companion object {
@@ -109,6 +113,23 @@ class BlockingCallContext(config: Config) : Rule(config) {
         return false
     }
 
+    // kang from org.jetbrains.kotlin.codegen.FunctionCodegen.getThrownExceptions(org.jetbrains.kotlin.descriptors.FunctionDescriptor)
+    // at 1.3.72
+    private fun getThrownExceptionsZ(descriptor: FunctionDescriptor): List<ClassDescriptor> {
+        val throwsAnnotation = descriptor.annotations.findAnnotation(FqName("kotlin.throws"))
+            ?: descriptor.annotations.findAnnotation(FqName("kotlin.jvm.Throws"))
+            ?: return emptyList()
+
+        val valueArgument = throwsAnnotation.allValueArguments.values.firstOrNull()
+        return if (valueArgument != null && valueArgument is ArrayValue) {
+            valueArgument.value.mapNotNull { current ->
+                (current as? KClassValue)?.let { classValue ->
+                    DescriptorUtils.getClassDescriptorForType(classValue.getArgumentType(descriptor.module))
+                }
+            }
+        } else emptyList()
+    }
+
     private fun isMethodBlocking(
         dbg: Debugger,
         method: ResolvedCall<out CallableDescriptor>
@@ -123,7 +144,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
         }
 
         val thrownExceptions = if (descriptor is FunctionDescriptor) {
-            getThrownExceptions(descriptor)
+            getThrownExceptionsZ(descriptor)
         } else emptyList()
 
         val throwBlockingExceptionType =
@@ -137,6 +158,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
         val annotations = descriptor.annotations
         var hasBlockingAnnotation = false
         annotations.forEach { annotation ->
+            dbg.i("  annotation ${annotation.fqName}")
             if (annotation.fqName in blockingMethodAnnotations) {
                 dbg.i("  hasBlockingAnnotation ${annotation.fqName}")
                 hasBlockingAnnotation = true
