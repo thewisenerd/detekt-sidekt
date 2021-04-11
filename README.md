@@ -32,15 +32,21 @@ build:
 sidekt:
   BlockingCallContext:
     active: true
-    debug: 'stderr' # or dir-path
+    # debug: 'stderr'
     blockingMethodAnnotations: ['com.custom.annotations.BlockingCall']
     blockingMethodFqNames: ['com.custom.wrapper.runBlocking']
-    blockingExceptionTypes: ['com.amazonaws.http.timers.client.SdkInterruptedException'] # only works with your own source, given @Throws is a SOURCE annotation
-    ioDispatcherFqNames: ['com.custom.Dispatchers.DB'] # Dispatchers.IO added by default
-    reclaimableMethodAnnotations: ['com.custom.annotations.ReclaimableBlockingCall'] # empty by default
-    reclaimableMethodFqNames: ['com.custom.annotations.ReclaimableBlockingCall'] # some reclaimable java methods added by default
+    blockingExceptionTypes: ['com.amazonaws.http.timers.client.SdkInterruptedException']
+    ioDispatcherFqNames: ['com.custom.Dispatchers.DB']
+    reclaimableMethodAnnotations: ['com.custom.annotations.ReclaimableBlockingCall']
+    reclaimableMethodFqNames: ['com.custom.wrapper.getSync']
 
 ```
+
+### debug
+
+prints a whole lot of debug information, please do not set this.
+
+takes one of 'stdout', 'stderr', or a directory path
 
 ### blockingMethodAnnotations
 
