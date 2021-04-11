@@ -41,6 +41,7 @@ class BlockingCallContextTest {
                 "active" -> true as? T
                 "debug" -> "stderr" as? T
                 "blockingMethodAnnotations" -> arrayListOf("BlockingCall") as? T
+                "blockingMethodFqNames" -> arrayListOf("Test03.foo", "kotlinx.coroutines.runBlocking") as? T
                 else -> null
             }
         }
@@ -64,10 +65,12 @@ class BlockingCallContextTest {
                 SourceLocation(69, 15),
                 SourceLocation(69, 15),
                 SourceLocation(75, 15)
-            ).minus(listOf( // kotlinx-coroutines-core dep in classpath
-                SourceLocation(43, 15),
-                SourceLocation(75, 15)
-            ))
+            ).minus(
+                listOf( // kotlinx-coroutines-core dep in classpath
+                    SourceLocation(43, 15),
+                    SourceLocation(75, 15)
+                )
+            )
         )
     }
 
@@ -90,7 +93,8 @@ class BlockingCallContextTest {
         ensureBlockingCallContextFindings(
             findings, listOf(
                 SourceLocation(8, 11),
-                SourceLocation(12, 11)
+                SourceLocation(12, 11),
+                SourceLocation(16, 28)
             )
         )
     }

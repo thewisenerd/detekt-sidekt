@@ -11,4 +11,12 @@ class Simple03 {
             42
         }.get(500, TimeUnit.MILLISECONDS)
     }
+
+    private suspend fun foo2(test: Test03) {
+        val result3 = test.foo()
+    }
+}
+
+class Test03 {
+    fun foo(): Int = 42
 }

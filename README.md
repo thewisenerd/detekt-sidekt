@@ -27,7 +27,9 @@ build:
 sidekt:
   BlockingCallContext:
     active: true
-    debug: 'stdout' # or dir-path
+    debug: 'stderr' # or dir-path
     blockingMethodAnnotations: ['com.custom.annotations.BlockingCall']
+    blockingMethodFqNames: ['kotlinx.coroutines.runBlocking']
+    blockingExceptionTypes: ['com.amazonaws.http.timers.client.SdkInterruptedException']
 
 ```
