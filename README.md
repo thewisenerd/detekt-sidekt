@@ -1,6 +1,11 @@
 # detekt-sidekt
 
-detekt extension to inspect blocking method calls within non-blocking context
+detekt extension that shamelessly kangs IntelliJ annotations. may probably not be needed once Jetbrains releases their
+gradle/maven plugin to do the same.
+
+Inspections provided:
+
+ - **BlockingCallContext**: inspect blocking method calls within non-blocking context
 
 ## detekt run
 
@@ -15,7 +20,7 @@ java -jar detekt-cli-1.16.0-all.jar \
   --config defalt-detekt-config.yml
 ```
 
-## detekt-config
+## BlockingCallContext
 
 ```yml
 build:
@@ -36,3 +41,34 @@ sidekt:
     reclaimableMethodFqNames: ['com.custom.annotations.ReclaimableBlockingCall'] # some reclaimable java methods added by default
 
 ```
+
+### blockingMethodAnnotations
+
+these are the annotations which you may use in your code to denote blocking methods
+
+### blockingMethodFqNames
+
+in case the annotations marking the method as blocking cannot be inferred (probably due to annotation retention at SOURCE), then,
+such known methods' FQ names can be configured
+
+### blockingExceptionTypes
+
+methods annotated with `@kotlin.jvm.Throws`, and which end up throwing certain exceptions, can be used to identify blocking
+methods.
+
+please note: this will only work for methods in your own source code, and cannot come from the classpath since `@kotlin.jvm.Throws`
+annotation retention is at SOURCE
+
+### ioDispatcherFqNames
+
+blocking calls are allowed within specific dispatchers, namely, Dispatchers.IO; given they are specifically for the
+purpose. in case you have an additional IO dispatcher, you may configure the same
+
+### reclaimableMethodAnnotations
+
+albeit dispatchers specifically meant for IO are meant for such "blocking" calls, there may be certain methods which
+already provide non-blocking method alternatives. such methods may be annotated with a distinct annotation, and configured
+
+### reclaimableMethodFqNames
+
+same as `reclaimableMethodAnnotations`, but allowing you to provide FQ names to the methods
