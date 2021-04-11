@@ -36,6 +36,10 @@ class BlockingCallContext(config: Config) : Rule(config) {
         )
 
         private val DEFAULT_BLOCKING_METHOD_FQ_NAMES = listOf(
+            // non-reclaimable
+            "kotlinx.coroutines.runBlocking",
+
+            // reclaimable; keep order
             "java.util.concurrent.CompletableFuture.get",
             "java.lang.Thread.sleep"
         )
