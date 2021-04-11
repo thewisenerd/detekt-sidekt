@@ -15,6 +15,10 @@ class Simple03 {
     private suspend fun foo2(test: Test03) {
         val result3 = test.foo()
     }
+
+    private suspend fun foo3() {
+        Thread.sleep(1000)
+    }
 }
 
 class Test03 {

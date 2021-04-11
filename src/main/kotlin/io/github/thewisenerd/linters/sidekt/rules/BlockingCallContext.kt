@@ -10,7 +10,10 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getTextWithLocation
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -33,12 +36,14 @@ class BlockingCallContext(config: Config) : Rule(config) {
         )
 
         private val DEFAULT_BLOCKING_METHOD_FQ_NAMES = listOf(
-            "java.util.concurrent.CompletableFuture.get"
+            "java.util.concurrent.CompletableFuture.get",
+            "java.lang.Thread.sleep"
         )
 
         // ideally also show a replaceWith
         private val DEFAULT_RECLAIMABLE_METHOD_FQ_NAMES = listOf(
-            "java.util.concurrent.CompletableFuture.get"
+            "java.util.concurrent.CompletableFuture.get",
+            "java.lang.Thread.sleep"
         )
     }
 
@@ -49,10 +54,10 @@ class BlockingCallContext(config: Config) : Rule(config) {
         Debt.TWENTY_MINS
     )
 
-    val issue2: Issue = Issue(
-        "ReclaimableBlockingCallContext",
+    private val reclaimableIssue = Issue(
+        javaClass.simpleName + "-Reclaimable",
         Severity.Performance,
-        "blocking call made which is reclaimable with alternatives",
+        "un-necessary blocking call made in possibly non-blocking context",
         Debt.FIVE_MINS
     )
 
@@ -121,8 +126,11 @@ class BlockingCallContext(config: Config) : Rule(config) {
         if (containingArgument != null) {
             // why not just use containingArgument? idk i'm just blindly kanging ref
             val callExpression =
-                PsiTreeUtil.getParentOfType(containingArgument, KtCallExpression::class.java) ?: return ContextInfo(false)
-            val matchingArgument = callExpression.valueArguments.find { it == containingArgument } ?: return ContextInfo(false)
+                PsiTreeUtil.getParentOfType(containingArgument, KtCallExpression::class.java) ?: return ContextInfo(
+                    false
+                )
+            val matchingArgument =
+                callExpression.valueArguments.find { it == containingArgument } ?: return ContextInfo(false)
             val type = matchingArgument.getArgumentExpression()?.getType(bindingContext)
 
             // dispatcher is usually the first, so
@@ -271,12 +279,24 @@ class BlockingCallContext(config: Config) : Rule(config) {
         val methodName = method.resultingDescriptor.fqNameOrNull()
         if (contextInfo.ioDispatcher == true) {
             if (blockingMethodInfo.reclaimable) {
-                report(CodeSmell(issue2, Entity.from(element), message = "method ($methodName) reclaimable in non-blocking context"))
+                report(
+                    CodeSmell(
+                        issue = reclaimableIssue,
+                        entity = Entity.from(element),
+                        message = "method ($methodName) reclaimable in non-blocking context"
+                    )
+                )
             } else {
                 // TODO: counter and exit logs
             }
         } else {
-            report(CodeSmell(issue, Entity.from(element), message = "method ($methodName) called in non-blocking context"))
+            report(
+                CodeSmell(
+                    issue = issue,
+                    entity = Entity.from(element),
+                    message = "method ($methodName) called in non-blocking context"
+                )
+            )
         }
     }
 }

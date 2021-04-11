@@ -29,11 +29,13 @@ class BlockingCallContextTest {
             }
         }
 
+        private val blockingCallContextClassName = BlockingCallContext::class.java.simpleName
+
         private fun ensureBlockingCallContextFindings(findings: List<Finding>, requiredFindings: List<SourceLocation>) =
-            ensureFindings("BlockingCallContext", findings, requiredFindings)
+            ensureFindings(blockingCallContextClassName, findings, requiredFindings)
 
         private fun ensureReclaimableBlockingCallContextFindings(findings: List<Finding>, requiredFindings: List<SourceLocation>) =
-            ensureFindings("ReclaimableBlockingCallContext", findings, requiredFindings)
+            ensureFindings("${blockingCallContextClassName}-Reclaimable", findings, requiredFindings)
     }
 
     private val wrapper = createEnvironment()
@@ -102,7 +104,8 @@ class BlockingCallContextTest {
             findings, listOf(
                 SourceLocation(8, 11),
                 SourceLocation(12, 11),
-                SourceLocation(16, 28)
+                SourceLocation(16, 28),
+                SourceLocation(20, 16)
             )
         )
     }
