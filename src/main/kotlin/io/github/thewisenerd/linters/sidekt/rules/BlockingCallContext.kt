@@ -10,10 +10,7 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getTextWithLocation
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -28,12 +25,19 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
 class BlockingCallContext(config: Config) : Rule(config) {
     companion object {
+        private const val DEFAULT_IO_DISPATCHER_FQN = "kotlinx.coroutines.Dispatchers.IO"
+
         private val DEFAULT_BLOCKING_EXCEPTION_TYPES = listOf(
             "java.lang.InterruptedException",
             "java.io.IOException"
         )
 
         private val DEFAULT_BLOCKING_METHOD_FQ_NAMES = listOf(
+            "java.util.concurrent.CompletableFuture.get"
+        )
+
+        // ideally also show a replaceWith
+        private val DEFAULT_RECLAIMABLE_METHOD_FQ_NAMES = listOf(
             "java.util.concurrent.CompletableFuture.get"
         )
     }
@@ -43,6 +47,13 @@ class BlockingCallContext(config: Config) : Rule(config) {
         Severity.Warning,
         "blocking call made in possibly non-blocking context",
         Debt.TWENTY_MINS
+    )
+
+    val issue2: Issue = Issue(
+        "ReclaimableBlockingCallContext",
+        Severity.Performance,
+        "blocking call made which is reclaimable with alternatives",
+        Debt.FIVE_MINS
     )
 
     private val debugStream by lazy {
@@ -74,19 +85,53 @@ class BlockingCallContext(config: Config) : Rule(config) {
         types.toSet().map { FqName(it) }
     }
 
+    private val ioDispatcherFqNames by lazy {
+        val fqNames = mutableListOf(DEFAULT_IO_DISPATCHER_FQN)
+        val extraFqNames = valueOrNull<ArrayList<String>>("ioDispatcherFqNames")
+        extraFqNames?.let { fqNames.addAll(it) }
+
+        fqNames.toSet().map { FqName(it) }
+    }
+
+    private val reclaimableMethodAnnotations by lazy {
+        valueOrNull<ArrayList<String>>("reclaimableMethodAnnotations")?.let { arrayList ->
+            arrayList.toSet().map { FqName(it) }
+        } ?: emptyList()
+    }
+
+    private val reclaimableMethodFqNames by lazy {
+        val fqNames = DEFAULT_RECLAIMABLE_METHOD_FQ_NAMES.toMutableList()
+        val extraFqNames = valueOrNull<ArrayList<String>>("reclaimableMethodAnnotations")
+        extraFqNames?.let { fqNames.addAll(it) }
+        fqNames.toSet().map { FqName(it) }
+    }
+
+    private fun getFqNameFromValueArgument(argument: KtValueArgument): FqName? {
+        val resolved = argument.getArgumentExpression().getResolvedCall(bindingContext)
+        return resolved?.resultingDescriptor?.fqNameOrNull()
+    }
+
     // ref: https://github.com/JetBrains/kotlin/blob/0cb039eea7180df2a62bf8db00847c5502653312/idea/src/org/jetbrains/kotlin/idea/inspections/blockingCallsDetection/CoroutineNonBlockingContextChecker.kt
-    private fun isContextNonBlockingFor(dbg: Debugger, element: PsiElement): Boolean {
+    private fun isContextNonBlockingFor(dbg: Debugger, element: PsiElement): ContextInfo {
         if (element !is KtCallExpression)
-            return false
+            return ContextInfo(false)
 
         val containingLambda = element.parents.find { it is KtLambdaExpression }
         val containingArgument = containingLambda?.let { PsiTreeUtil.getParentOfType(it, KtValueArgument::class.java) }
         if (containingArgument != null) {
             // why not just use containingArgument? idk i'm just blindly kanging ref
             val callExpression =
-                PsiTreeUtil.getParentOfType(containingArgument, KtCallExpression::class.java) ?: return false
-            val matchingArgument = callExpression.valueArguments.find { it == containingArgument } ?: return false
+                PsiTreeUtil.getParentOfType(containingArgument, KtCallExpression::class.java) ?: return ContextInfo(false)
+            val matchingArgument = callExpression.valueArguments.find { it == containingArgument } ?: return ContextInfo(false)
             val type = matchingArgument.getArgumentExpression()?.getType(bindingContext)
+
+            // dispatcher is usually the first, so
+            val probableDispatcherArgument = callExpression.valueArguments.firstOrNull()?.takeIf {
+                callExpression.valueArguments.size > 1
+            }
+            val ioDispatcher = probableDispatcherArgument?.let {
+                getFqNameFromValueArgument(it)
+            }?.let { it in ioDispatcherFqNames }
 
             dbg.i(
                 "lambda-expr:\n" +
@@ -95,10 +140,11 @@ class BlockingCallContext(config: Config) : Rule(config) {
                         "  arg=${containingArgument.getTextWithLocation()}\n" +
                         "  callExpr=${callExpression.getTextWithLocation()}\n" +
                         "  matchingArgument=${matchingArgument.getTextWithLocation()}\n" +
+                        "  ioDispatcher=$ioDispatcher\n" +
                         "  suspending=${type?.isSuspendFunctionTypeOrSubtype}"
             )
 
-            return type?.isSuspendFunctionTypeOrSubtype == true
+            return ContextInfo(type?.isSuspendFunctionTypeOrSubtype == true, ioDispatcher)
         }
 
         val callingMethod = PsiTreeUtil.getParentOfType(element, KtNamedFunction::class.java)
@@ -107,10 +153,10 @@ class BlockingCallContext(config: Config) : Rule(config) {
             if (isSuspendingMethod) {
                 dbg.i("got suspending callingMethod ${callingMethod.name} ${element.getTextWithLocation()}")
             }
-            return isSuspendingMethod
+            return ContextInfo(isSuspendingMethod)
         }
 
-        return false
+        return ContextInfo(false)
     }
 
     // kang from org.jetbrains.kotlin.codegen.FunctionCodegen.getThrownExceptions(org.jetbrains.kotlin.descriptors.FunctionDescriptor)
@@ -132,15 +178,30 @@ class BlockingCallContext(config: Config) : Rule(config) {
 
     private fun isMethodBlocking(
         dbg: Debugger,
-        method: ResolvedCall<out CallableDescriptor>
-    ): Boolean {
+        method: ResolvedCall<out CallableDescriptor>,
+        contextInfo: ContextInfo
+    ): BlockingMethodInfo {
         val descriptor = method.resultingDescriptor
+
+        fun fromFqName(fqName: FqName): BlockingMethodInfo {
+            return BlockingMethodInfo(true, contextInfo.ioDispatcher == true && fqName in reclaimableMethodFqNames)
+        }
+
+        fun fromBlockingExceptionTypeFqName(fqName: FqName): BlockingMethodInfo {
+            // ??
+            return BlockingMethodInfo(true)
+        }
+
+        fun fromBlockingMethodAnnotationFqName(fqName: FqName): BlockingMethodInfo {
+            return BlockingMethodInfo(true, contextInfo.ioDispatcher == true && fqName in reclaimableMethodAnnotations)
+        }
+
 
         val fqName = descriptor.fqNameOrNull()
         dbg.i("  got fqName=$fqName")
-        if (fqName in blockingMethodFqNames) {
+        if (fqName != null && fqName in blockingMethodFqNames) {
             dbg.i("  got blocking method fqName $fqName")
-            return true
+            return fromFqName(fqName)
         }
 
         val thrownExceptions = if (descriptor is FunctionDescriptor) {
@@ -152,25 +213,19 @@ class BlockingCallContext(config: Config) : Rule(config) {
 
         if (throwBlockingExceptionType != null) {
             dbg.i("  throwBlockingExceptionType $throwBlockingExceptionType")
-            return true
+            return fromBlockingExceptionTypeFqName(throwBlockingExceptionType)
         }
 
         val annotations = descriptor.annotations
-        var hasBlockingAnnotation = false
         annotations.forEach { annotation ->
-            dbg.i("  annotation ${annotation.fqName}")
-            if (annotation.fqName in blockingMethodAnnotations) {
-                dbg.i("  hasBlockingAnnotation ${annotation.fqName}")
-                hasBlockingAnnotation = true
+            val annotationFqName = annotation.fqName
+            if (annotationFqName != null && annotationFqName in blockingMethodAnnotations) {
+                dbg.i("  hasBlockingAnnotation=true, ${annotation.fqName}")
+                return fromBlockingMethodAnnotationFqName(annotationFqName)
             }
         }
 
-        if (hasBlockingAnnotation) {
-            dbg.i("  hasBlockingAnnotation=true")
-            return true
-        }
-
-        return false
+        return BlockingMethodInfo(false)
     }
 
 
@@ -189,7 +244,8 @@ class BlockingCallContext(config: Config) : Rule(config) {
     }
 
     private fun visitElementSafe(dbg: Debugger, element: PsiElement) {
-        if (!isContextNonBlockingFor(dbg, element)) {
+        val contextInfo = isContextNonBlockingFor(dbg, element)
+        if (!contextInfo.blocking) {
             dbg.i("  isContextNonBlocking=false")
             return
         }
@@ -205,13 +261,32 @@ class BlockingCallContext(config: Config) : Rule(config) {
             return
         }
 
-        if (!isMethodBlocking(dbg, method)) {
+        val blockingMethodInfo = isMethodBlocking(dbg, method, contextInfo)
+        if (!blockingMethodInfo.blocking) {
             dbg.i("  isMethodBlocking=false")
             return
         }
 
-        dbg.i("reporting BlockingContext for element ${element.getTextWithLocation()}")
+        dbg.i("reporting BlockingContext $blockingMethodInfo for element ${element.getTextWithLocation()}")
         val methodName = method.resultingDescriptor.fqNameOrNull()
-        report(CodeSmell(issue, Entity.from(element), message = "method ($methodName) called in non-blocking context"))
+        if (contextInfo.ioDispatcher == true) {
+            if (blockingMethodInfo.reclaimable) {
+                report(CodeSmell(issue2, Entity.from(element), message = "method ($methodName) reclaimable in non-blocking context"))
+            } else {
+                // TODO: counter and exit logs
+            }
+        } else {
+            report(CodeSmell(issue, Entity.from(element), message = "method ($methodName) called in non-blocking context"))
+        }
     }
 }
+
+private data class ContextInfo(
+    val blocking: Boolean,
+    val ioDispatcher: Boolean? = null
+)
+
+private data class BlockingMethodInfo(
+    val blocking: Boolean,
+    val reclaimable: Boolean = false
+)

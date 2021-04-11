@@ -29,7 +29,10 @@ sidekt:
     active: true
     debug: 'stderr' # or dir-path
     blockingMethodAnnotations: ['com.custom.annotations.BlockingCall']
-    blockingMethodFqNames: ['kotlinx.coroutines.runBlocking']
-    blockingExceptionTypes: ['com.amazonaws.http.timers.client.SdkInterruptedException']
+    blockingMethodFqNames: ['com.custom.wrapper.runBlocking']
+    blockingExceptionTypes: ['com.amazonaws.http.timers.client.SdkInterruptedException'] # only works with your own source, given @Throws is a SOURCE annotation
+    ioDispatcherFqNames: ['com.custom.Dispatchers.DB'] # Dispatchers.IO added by default
+    reclaimableMethodAnnotations: ['com.custom.annotations.ReclaimableBlockingCall'] # empty by default
+    reclaimableMethodFqNames: ['com.custom.annotations.ReclaimableBlockingCall'] # some reclaimable java methods added by default
 
 ```
