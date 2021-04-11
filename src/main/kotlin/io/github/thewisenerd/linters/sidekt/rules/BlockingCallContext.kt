@@ -47,19 +47,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
         )
     }
 
-    override val issue: Issue = Issue(
-        javaClass.simpleName,
-        Severity.Warning,
-        "blocking call made in possibly non-blocking context",
-        Debt.TWENTY_MINS
-    )
-
-    private val reclaimableIssue = Issue(
-        javaClass.simpleName + "-Reclaimable",
-        Severity.Performance,
-        "un-necessary blocking call made in possibly non-blocking context",
-        Debt.FIVE_MINS
-    )
+    override val issue: Issue = IssueHolder.blockingCallContext
 
     private val debugStream by lazy {
         valueOrNull<String>("debug")?.let {
@@ -281,7 +269,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
             if (blockingMethodInfo.reclaimable) {
                 report(
                     CodeSmell(
-                        issue = reclaimableIssue,
+                        issue = IssueHolder.reclaimableBlockingCallContext,
                         entity = Entity.from(element),
                         message = "method ($methodName) reclaimable in non-blocking context"
                     )
@@ -292,7 +280,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
         } else {
             report(
                 CodeSmell(
-                    issue = issue,
+                    issue = IssueHolder.blockingCallContext,
                     entity = Entity.from(element),
                     message = "method ($methodName) called in non-blocking context"
                 )
@@ -310,3 +298,23 @@ private data class BlockingMethodInfo(
     val blocking: Boolean,
     val reclaimable: Boolean = false
 )
+
+internal object IssueHolder {
+    val blockingCallContext = Issue(
+        BlockingCallContext::class.java.simpleName,
+        Severity.Performance,
+        "un-necessary blocking call made in possibly non-blocking context",
+        Debt.FIVE_MINS
+    )
+
+    val reclaimableBlockingCallContext = Issue(
+        BlockingCallContext::class.java.simpleName + "-Reclaimable",
+        Severity.Performance,
+        "un-necessary blocking call made in possibly non-blocking context",
+        Debt.FIVE_MINS
+    )
+}
+
+class BlockingCallContextReclaimable(config: Config) : Rule(config) {
+    override val issue = IssueHolder.reclaimableBlockingCallContext
+}
