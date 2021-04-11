@@ -92,9 +92,10 @@ class BlockingCallContext(config: Config) : Rule(config) {
         } ?: emptyList()
     }
 
+    // TODO: add tests for this
     private val reclaimableMethodFqNames by lazy {
         val fqNames = DEFAULT_RECLAIMABLE_METHOD_FQ_NAMES.toMutableList()
-        val extraFqNames = valueOrNull<ArrayList<String>>("reclaimableMethodAnnotations")
+        val extraFqNames = valueOrNull<ArrayList<String>>("reclaimableMethodFqNames")
         extraFqNames?.let { fqNames.addAll(it) }
         fqNames.toSet().map { FqName(it) }
     }
@@ -183,13 +184,22 @@ class BlockingCallContext(config: Config) : Rule(config) {
             return BlockingMethodInfo(true, contextInfo.ioDispatcher == true && fqName in reclaimableMethodFqNames)
         }
 
-        fun fromBlockingExceptionTypeFqName(fqName: FqName): BlockingMethodInfo {
-            // ??
-            return BlockingMethodInfo(true)
+        fun fromBlockingExceptionTypeFqName(exceptionFqName: FqName, methodFqName: FqName?): BlockingMethodInfo {
+            // what to do with exceptionFqName?
+            return BlockingMethodInfo(
+                true,
+                contextInfo.ioDispatcher == true && methodFqName in reclaimableMethodFqNames
+            )
         }
 
-        fun fromBlockingMethodAnnotationFqName(fqName: FqName): BlockingMethodInfo {
-            return BlockingMethodInfo(true, contextInfo.ioDispatcher == true && fqName in reclaimableMethodAnnotations)
+        fun fromBlockingMethodAnnotationFqName(
+            methodAnnotationFqName: FqName,
+            methodFqName: FqName?
+        ): BlockingMethodInfo {
+            return BlockingMethodInfo(
+                true,
+                contextInfo.ioDispatcher == true && (methodAnnotationFqName in reclaimableMethodAnnotations || methodFqName in reclaimableMethodFqNames)
+            )
         }
 
 
@@ -209,7 +219,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
 
         if (throwBlockingExceptionType != null) {
             dbg.i("  throwBlockingExceptionType $throwBlockingExceptionType")
-            return fromBlockingExceptionTypeFqName(throwBlockingExceptionType)
+            return fromBlockingExceptionTypeFqName(throwBlockingExceptionType, fqName)
         }
 
         val annotations = descriptor.annotations
@@ -217,7 +227,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
             val annotationFqName = annotation.fqName
             if (annotationFqName != null && annotationFqName in blockingMethodAnnotations) {
                 dbg.i("  hasBlockingAnnotation=true, ${annotation.fqName}")
-                return fromBlockingMethodAnnotationFqName(annotationFqName)
+                return fromBlockingMethodAnnotationFqName(annotationFqName, fqName)
             }
         }
 
