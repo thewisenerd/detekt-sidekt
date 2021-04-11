@@ -12,6 +12,7 @@ class Debugger(private val ref: Int, private val outputStream: OutputStream?) {
         fun getOutputStreamForDebugger(debug: String): OutputStream? {
             val fallback = when (debug) {
                 "stdout" -> System.out
+                "stderr" -> System.err
                 else -> null
             }
             if (fallback != null) return fallback

@@ -28,5 +28,6 @@ sidekt:
   BlockingCallContext:
     active: true
     debug: 'stdout' # or dir-path
-    blockingAnnotations: ['com.custom.annotations.BlockingCall']
+    blockingMethodAnnotations: ['com.custom.annotations.BlockingCall']
+
 ```
