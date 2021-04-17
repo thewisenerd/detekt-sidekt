@@ -51,7 +51,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
         )
     }
 
-    override val issue: Issue = IssueHolder.blockingCallContext
+    override val issue: Issue = BlockingCallContextIssueHolder.blockingCallContext
 
     private val debugStream by lazy {
         valueOrNull<String>("debug")?.let {
@@ -242,7 +242,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
     override fun visitElement(element: PsiElement) {
         super.visitElement(element)
 
-        val dbg = Debugger.make(debugStream)
+        val dbg = Debugger.make(BlockingCallContext::class.java.simpleName, debugStream)
         dbg.i("visiting element $element type=${element.javaClass.simpleName} ctx=${bindingContext != BindingContext.EMPTY} text=${element.text}")
         if (bindingContext == BindingContext.EMPTY) return
 
@@ -283,7 +283,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
             if (blockingMethodInfo.reclaimable) {
                 report(
                     CodeSmell(
-                        issue = IssueHolder.reclaimableBlockingCallContext,
+                        issue = BlockingCallContextIssueHolder.reclaimableBlockingCallContext,
                         entity = Entity.from(element),
                         message = "method ($methodName) reclaimable in non-blocking context"
                     )
@@ -294,7 +294,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
         } else {
             report(
                 CodeSmell(
-                    issue = IssueHolder.blockingCallContext,
+                    issue = BlockingCallContextIssueHolder.blockingCallContext,
                     entity = Entity.from(element),
                     message = "method ($methodName) called in non-blocking context"
                 )
@@ -313,7 +313,7 @@ private data class BlockingMethodInfo(
     val reclaimable: Boolean = false
 )
 
-internal object IssueHolder {
+private object BlockingCallContextIssueHolder {
     val blockingCallContext = Issue(
         BlockingCallContext::class.java.simpleName,
         Severity.Performance,
@@ -330,5 +330,5 @@ internal object IssueHolder {
 }
 
 class BlockingCallContextReclaimable(config: Config) : Rule(config) {
-    override val issue = IssueHolder.reclaimableBlockingCallContext
+    override val issue = BlockingCallContextIssueHolder.reclaimableBlockingCallContext
 }

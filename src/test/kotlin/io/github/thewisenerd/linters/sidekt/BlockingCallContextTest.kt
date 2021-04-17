@@ -1,46 +1,24 @@
 package io.github.thewisenerd.linters.sidekt
 
-import io.github.detekt.test.utils.createEnvironment
 import io.github.thewisenerd.linters.sidekt.rules.BlockingCallContext
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Finding
 import io.gitlab.arturbosch.detekt.api.SourceLocation
 import io.gitlab.arturbosch.detekt.test.compileAndLintWithContext
 import org.junit.Test
-import java.io.InputStream
 
 class BlockingCallContextTest {
     companion object {
-        private fun ensureFindings(id: String, findings: List<Finding>, requiredFindings: List<SourceLocation>) {
-            val allFindings =
-                findings.filter { it.id == id }.map { it.location.source }
-
-            val missing = requiredFindings.minus(allFindings)
-            val extra = allFindings.minus(requiredFindings)
-
-            assert(missing.isEmpty() && extra.isEmpty()) {
-                "findings mismatch\n" +
-                        "  missing = $missing\n" +
-                        "  extra   = $extra"
-            }
-
-            assert(extra.isEmpty()) {
-                "got extra findings $extra"
-            }
-        }
-
         private val blockingCallContextClassName = BlockingCallContext::class.java.simpleName
 
         private fun ensureBlockingCallContextFindings(findings: List<Finding>, requiredFindings: List<SourceLocation>) =
-            ensureFindings(blockingCallContextClassName, findings, requiredFindings)
+            TestUtils.ensureFindings(blockingCallContextClassName, findings, requiredFindings)
 
         private fun ensureReclaimableBlockingCallContextFindings(findings: List<Finding>, requiredFindings: List<SourceLocation>) =
-            ensureFindings("${blockingCallContextClassName}-Reclaimable", findings, requiredFindings)
+            TestUtils.ensureFindings("${blockingCallContextClassName}-Reclaimable", findings, requiredFindings)
     }
 
-    private val wrapper = createEnvironment()
-    private val env = wrapper.env
-    val testConfig = object : Config {
+    private val testConfig = object : Config {
         override fun subConfig(key: String): Config = this
 
         @Suppress("UNCHECKED_CAST")
@@ -58,15 +36,11 @@ class BlockingCallContextTest {
     }
 
     private val subject = BlockingCallContext(testConfig)
-    private fun readFile(filename: String): String {
-        val resource: InputStream? = this.javaClass.classLoader.getResourceAsStream(filename)
-        return resource?.let { String(it.readBytes()) } ?: error("resource $filename not found")
-    }
 
     @Test
     fun simple01() {
-        val code = readFile("simple01.kt")
-        val findings = subject.compileAndLintWithContext(env, code)
+        val code = TestUtils.readFile("simple01.kt")
+        val findings = subject.compileAndLintWithContext(TestUtils.env, code)
         ensureBlockingCallContextFindings(
             findings, listOf(
                 SourceLocation(40, 21),
@@ -86,8 +60,8 @@ class BlockingCallContextTest {
 
     @Test
     fun simple02() {
-        val code = readFile("simple02.kt")
-        val findings = subject.compileAndLintWithContext(env, code)
+        val code = TestUtils.readFile("simple02.kt")
+        val findings = subject.compileAndLintWithContext(TestUtils.env, code)
         ensureBlockingCallContextFindings(
             findings, listOf(
                 SourceLocation(13, 23),
@@ -98,8 +72,8 @@ class BlockingCallContextTest {
 
     @Test
     fun simple03() {
-        val code = readFile("simple03.kt")
-        val findings = subject.compileAndLintWithContext(env, code)
+        val code = TestUtils.readFile("simple03.kt")
+        val findings = subject.compileAndLintWithContext(TestUtils.env, code)
         ensureBlockingCallContextFindings(
             findings, listOf(
                 SourceLocation(8, 11),
@@ -112,8 +86,8 @@ class BlockingCallContextTest {
 
     @Test
     fun simple04() {
-        val code = readFile("simple04.kt")
-        val findings = subject.compileAndLintWithContext(env, code)
+        val code = TestUtils.readFile("simple04.kt")
+        val findings = subject.compileAndLintWithContext(TestUtils.env, code)
         ensureReclaimableBlockingCallContextFindings(
             findings, listOf(
                 SourceLocation(37, 22),

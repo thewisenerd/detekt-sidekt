@@ -5,7 +5,7 @@ import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
-class Debugger(private val ref: Int, private val outputStream: OutputStream?) {
+class Debugger(private val name: String, private val ref: Int, private val outputStream: OutputStream?) {
     companion object {
         private val ctr = AtomicInteger()
 
@@ -28,14 +28,14 @@ class Debugger(private val ref: Int, private val outputStream: OutputStream?) {
             } else null
         }
 
-        fun make(outputStream: OutputStream?): Debugger {
+        fun make(name: String, outputStream: OutputStream?): Debugger {
             val ref = ctr.incrementAndGet()
-            return Debugger(ref, outputStream)
+            return Debugger(name, ref, outputStream)
         }
     }
 
     fun i(str: String) {
-        val msg = "[$ref] $str\n"
+        val msg = "[$name-$ref] $str\n"
 
         when {
             outputStream == System.out -> {

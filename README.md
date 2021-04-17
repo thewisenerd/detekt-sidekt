@@ -6,6 +6,11 @@ gradle/maven plugin to do the same.
 Inspections provided:
 
  - **BlockingCallContext**: inspect blocking method calls within non-blocking context
+ - **BlockingCallContextReclaimable**: infer blocking calls within `Dispatchers.IO` context which can be migrated to
+   non-blocking alternatives
+ - **JerseyMethodParameterDefaultValue**: infer if a probable jersey method contains a parameter with a default value
+ - **JerseyMissingHttpMethodAnnotation**: infer if a probable jersey method does not contain any HttpMethod annotations
+   like `@GET` or `@POST`
 
 ## detekt run
 
@@ -20,7 +25,7 @@ java -jar detekt-cli-1.16.0-all.jar \
   --config defalt-detekt-config.yml
 ```
 
-## BlockingCallContext
+find a way to fail the build if these errors come up by setting very high weights
 
 ```yml
 build:
@@ -28,7 +33,12 @@ build:
   excludeCorrectable: false
   weights:
     BlockingCallContext: 100000
+    JerseyMethodParameterDefaultValue: 100000
+```
 
+## BlockingCallContext, BlockingCallContextReclaimable
+
+```yml
 sidekt:
   BlockingCallContext:
     active: true
@@ -78,3 +88,12 @@ already provide non-blocking method alternatives. such methods may be annotated 
 ### reclaimableMethodFqNames
 
 same as `reclaimableMethodAnnotations`, but allowing you to provide FQ names to the methods
+
+## JerseyMethodParameterDefaultValue, JerseyMissingHttpMethodAnnotation
+
+```yml
+sidekt:
+  JerseyMethodParameterDefaultValue:
+    active: true
+    # debug: 'stderr'
+```
