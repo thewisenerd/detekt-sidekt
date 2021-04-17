@@ -97,3 +97,17 @@ sidekt:
     active: true
     # debug: 'stderr'
 ```
+
+**JerseyMethodParameterDefaultValue**
+
+this is in reference to the following issues; even with this being "fixed" (as in, not crash at runtime)
+in later versions, this is a pitfall; since nullable parameters always get set to null
+(due to how method matching works), and non-nullable values throw an error anyway if you haven't set the query param.
+
+ - [KT-27947](https://youtrack.jetbrains.com/issue/KT-27947)
+ - [KT-28684](https://youtrack.jetbrains.com/issue/KT-28684)
+
+**JerseyMissingHttpMethodAnnotation**
+
+if a resource method has a `@Path` annotation, but not an accompanying `@GET` or `@POST` annotation,
+the resources get tagged `UNKNOWN`, do not match or invoke the resource method; and throw a 404 instead.
