@@ -102,7 +102,8 @@ sidekt:
 
 this is in reference to the following issues; even with this being "fixed" (as in, not crash at runtime)
 in later versions, this is a pitfall; since nullable parameters always get set to null
-(due to how method matching works), and non-nullable values throw an error anyway if you haven't set the query param.
+(due to how method matching works), and non-nullable values, if primitives, get set to the default values,
+and if not, throw a "Parameter specified as non-null is null" error on invocation.
 
  - [KT-27947](https://youtrack.jetbrains.com/issue/KT-27947)
  - [KT-28684](https://youtrack.jetbrains.com/issue/KT-28684)
