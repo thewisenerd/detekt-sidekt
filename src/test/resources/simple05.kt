@@ -10,12 +10,6 @@ annotation class POST
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Path(val descriptor: String)
 
-
-@Path("/users/{username}")
-fun foo1(a: String) {
-
-}
-
 @POST
 @Path("/users/{username}")
 fun foo2(a: String? = null) {

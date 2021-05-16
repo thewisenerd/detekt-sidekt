@@ -12,13 +12,6 @@ private object JerseyIssueHolder {
         "jersey resource method has default parameter value",
         Debt.FIVE_MINS
     )
-
-    val jerseyMissingHttpMethodAnnotation = Issue(
-        JerseyMissingHttpMethodAnnotation::class.java.simpleName,
-        Severity.Defect,
-        "jersey resource method does not have HttpMethod annotation",
-        Debt.FIVE_MINS
-    )
 }
 
 /**
@@ -46,24 +39,11 @@ class JerseyMethodParameterDefaultValue(config: Config) : Rule(config) {
         val dbg = Debugger.make(JerseyMethodParameterDefaultValue::class.java.simpleName, debugStream)
 
         // TODO: ideally use fqName
-        val hasHttpMethodAnnotation = function.hasAnnotation(*standardHttpMethodList, "HttpMethod")
         val hasPathAnnotation = function.hasAnnotation("Path")
 
         if (!hasPathAnnotation) {
             dbg.i("  hasPathAnnotation=false")
             return
-        }
-
-        if (!hasHttpMethodAnnotation) {
-            dbg.i("  hasHttpMethodAnnotation=false")
-
-            report(
-                CodeSmell(
-                    issue = JerseyIssueHolder.jerseyMissingHttpMethodAnnotation,
-                    entity = Entity.from(function),
-                    message = "probable jersey resource method (${function.name}) does not have a HttpMethod annotation"
-                )
-            )
         }
 
         function.valueParameters.forEach { parameter ->
@@ -80,8 +60,4 @@ class JerseyMethodParameterDefaultValue(config: Config) : Rule(config) {
             }
         }
     }
-}
-
-class JerseyMissingHttpMethodAnnotation(config: Config) : Rule(config) {
-    override val issue: Issue = JerseyIssueHolder.jerseyMissingHttpMethodAnnotation
 }

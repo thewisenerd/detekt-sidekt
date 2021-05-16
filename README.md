@@ -9,8 +9,6 @@ Inspections provided:
  - **BlockingCallContextReclaimable**: infer blocking calls within `Dispatchers.IO` context which can be migrated to
    non-blocking alternatives
  - **JerseyMethodParameterDefaultValue**: infer if a probable jersey method contains a parameter with a default value
- - **JerseyMissingHttpMethodAnnotation**: infer if a probable jersey method does not contain any HttpMethod annotations
-   like `@GET` or `@POST`
 
 ## detekt run
 
@@ -89,7 +87,7 @@ already provide non-blocking method alternatives. such methods may be annotated 
 
 same as `reclaimableMethodAnnotations`, but allowing you to provide FQ names to the methods
 
-## JerseyMethodParameterDefaultValue, JerseyMissingHttpMethodAnnotation
+## JerseyMethodParameterDefaultValue
 
 ```yml
 sidekt:
@@ -107,8 +105,3 @@ and if not, throw a "Parameter specified as non-null is null" error on invocatio
 
  - [KT-27947](https://youtrack.jetbrains.com/issue/KT-27947)
  - [KT-28684](https://youtrack.jetbrains.com/issue/KT-28684)
-
-**JerseyMissingHttpMethodAnnotation**
-
-if a resource method has a `@Path` annotation, but not an accompanying `@GET` or `@POST` annotation,
-the resources get tagged `UNKNOWN`, do not match or invoke the resource method; and throw a 404 instead.
