@@ -9,6 +9,7 @@ Inspections provided:
  - **BlockingCallContextReclaimable**: infer blocking calls within `Dispatchers.IO` context which can be migrated to
    non-blocking alternatives
  - **JerseyMethodParameterDefaultValue**: infer if a probable jersey method contains a parameter with a default value
+- **JerseyMainThreadBlockingCall**: infer if a probable jersey resource method contains a main thread blocking call(runblocking)
 
 ## detekt run
 
