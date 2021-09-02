@@ -106,3 +106,13 @@ and if not, throw a "Parameter specified as non-null is null" error on invocatio
 
  - [KT-27947](https://youtrack.jetbrains.com/issue/KT-27947)
  - [KT-28684](https://youtrack.jetbrains.com/issue/KT-28684)
+
+
+## JerseyMainThreadBlockingCall
+
+```yml
+sidekt:
+   JerseyMainThreadBlockingCall:
+    active: true
+    # debug: 'stderr'
+```

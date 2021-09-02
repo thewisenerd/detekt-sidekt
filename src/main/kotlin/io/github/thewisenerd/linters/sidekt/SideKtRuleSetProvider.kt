@@ -2,6 +2,7 @@ package io.github.thewisenerd.linters.sidekt
 
 import io.github.thewisenerd.linters.sidekt.rules.BlockingCallContext
 import io.github.thewisenerd.linters.sidekt.rules.BlockingCallContextReclaimable
+import io.github.thewisenerd.linters.sidekt.rules.JerseyMainThreadBlockingCall
 import io.github.thewisenerd.linters.sidekt.rules.JerseyMethodParameterDefaultValue
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.RuleSet
@@ -15,7 +16,8 @@ class SideKtRuleSetProvider : RuleSetProvider {
         listOf(
             BlockingCallContext(config),
             BlockingCallContextReclaimable(config),
-            JerseyMethodParameterDefaultValue(config)
+            JerseyMethodParameterDefaultValue(config),
+            JerseyMainThreadBlockingCall(config)
         )
     )
 }
