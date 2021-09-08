@@ -20,8 +20,9 @@
     </properties>
     <distributionManagement>
         <repository>
-            <id>udaan</id>
-            <url>https://udmvnrepo.blob.core.windows.net/repo</url>
+            <id>artifactory</id>
+            <name>artifactory-releases</name>
+            <url>http://artifactory.dev.udaan.io/artifactory/libs-release-local</url>
         </repository>
     </distributionManagement>
 
