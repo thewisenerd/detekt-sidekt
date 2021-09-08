@@ -3,12 +3,12 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.thewisenerd.linters</groupId>
+    <groupId>com.udaan</groupId>
     <artifactId>sidekt</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>io.github.thewisenerd.linters sidekt</name>
+    <name>com.udaan.sidekt</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
