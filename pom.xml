@@ -18,6 +18,12 @@
         <junit.version>4.12</junit.version>
         <detekt.version>1.11.0</detekt.version>
     </properties>
+    <distributionManagement>
+        <repository>
+            <id>udaan</id>
+            <url>https://udmvnrepo.blob.core.windows.net/repo</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
