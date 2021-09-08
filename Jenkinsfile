@@ -18,8 +18,7 @@ pipeline {
         }
         stage('Deploy-Jar') {
             when {
-//                branch 'master'
-                changeRequest target: 'master' // TODO: lakshmi - remove before merge to master
+                branch 'master'
             }
             steps {
                 sh "mvn-cd-build mvn -P '!default,repo-proxy' ${MAVEN_CLI_OPTS} deploy -DskipTests"
