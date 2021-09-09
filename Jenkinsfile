@@ -13,7 +13,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo "Building and running tests"
-                sh "mvn-cd-build mvn -P '!default,repo-proxy' ${MAVEN_CLI_OPTS} clean test"
+                sh "mvn -P '!default,repo-proxy' ${MAVEN_CLI_OPTS} clean test"
             }
         }
         stage('Deploy-Jar') {
@@ -24,7 +24,7 @@ pipeline {
                 }
             }
             steps {
-                sh "mvn-cd-build mvn -P '!default,repo-proxy' ${MAVEN_CLI_OPTS} deploy -DskipTests"
+                sh "mvn -P '!default,repo-proxy' ${MAVEN_CLI_OPTS} deploy -DskipTests"
             }
         }
     }
