@@ -9,9 +9,10 @@
         <version>[2.0,3.0)</version>
     </parent>
 
-    <groupId>com.udaan</groupId>
+    <groupId>com.udaan.detekt</groupId>
     <artifactId>sidekt</artifactId>
-    <version>1.0</version>
+    <!-- version value should be same as <detekt.version> used in <properties> -->
+    <version>1.11.0</version>
     <packaging>jar</packaging>
 
     <name>com.udaan.sidekt</name>
