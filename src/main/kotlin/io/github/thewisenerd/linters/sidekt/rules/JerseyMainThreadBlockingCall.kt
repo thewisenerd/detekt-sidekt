@@ -40,6 +40,15 @@ class JerseyMainThreadBlockingCall(config: Config) : Rule(config)  {
 
         var methodBlockingMainThread = false
         resourceMethod.children.forEach {
+            if(it is KtDotQualifiedExpression) {
+                it.children.filterIsInstance<KtCallExpression>().map { c ->
+                    val isUsingRunBlockingExpression = (c.calleeExpression as KtNameReferenceExpression).getReferencedNameAsName().identifier == RUN_BLOCKING_EXP_ID
+                    if(isUsingRunBlockingExpression) {
+                        methodBlockingMainThread = true
+                    }
+                }
+            }
+
             if(it is KtCallExpression) {
                 val isUsingRunBlockingExpression = (it.calleeExpression as KtNameReferenceExpression).getReferencedNameAsName().identifier == RUN_BLOCKING_EXP_ID
                 if(isUsingRunBlockingExpression) {
@@ -63,6 +72,15 @@ class JerseyMainThreadBlockingCall(config: Config) : Rule(config)  {
                                methodBlockingMainThread = true
                            }
                        }
+                    }
+
+                    if(blkExp is KtDotQualifiedExpression) {
+                        blkExp.children.filterIsInstance<KtCallExpression>().map { c ->
+                            val isUsingRunBlockingExpression = (c.calleeExpression as KtNameReferenceExpression).getReferencedNameAsName().identifier == RUN_BLOCKING_EXP_ID
+                            if(isUsingRunBlockingExpression) {
+                                methodBlockingMainThread = true
+                            }
+                        }
                     }
                 }
             }
