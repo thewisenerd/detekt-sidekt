@@ -35,12 +35,13 @@ class JerseyMainThreadBlockingCallTest {
         val code = TestUtils.readFile("simple06.kt")
         val findings = subject.compileAndLintWithContext(TestUtils.env, code)
         ensureJerseyMethodParameterDefaultValueFindings(findings, listOf(
-            SourceLocation(3, 5),
-            SourceLocation(8, 5),
-            SourceLocation(13, 5),
-            SourceLocation(18, 5),
-            SourceLocation(25, 5),
-            SourceLocation(42, 5)
+            SourceLocation(4, 5),
+            SourceLocation(9, 5),
+            SourceLocation(14, 5),
+            SourceLocation(19, 5),
+            SourceLocation(26, 5),
+            SourceLocation(43, 5),
+            SourceLocation(48, 5)
         ))
     }
 

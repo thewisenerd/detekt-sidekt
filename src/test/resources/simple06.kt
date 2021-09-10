@@ -1,5 +1,6 @@
 import kotlinx.coroutines.runBlocking
 
+
     @Path("/variant01")
     fun testRunBlockingVariant01() = runBlocking {
             "This is variation 01"
@@ -47,5 +48,8 @@ import kotlinx.coroutines.runBlocking
     @GET
     fun testRunBlockingVariant08() : String {
         println("This is variation 08")
-        return "This is variation 08"
+        kotlinx.coroutines.runBlocking {
+            return@runBlocking "This is variation 08"
+        }
+        return ""
     }
