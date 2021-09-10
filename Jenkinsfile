@@ -18,10 +18,7 @@ pipeline {
         }
         stage('Deploy-Jar') {
             when {
-                anyOf {
-                    branch 'master'
-                    changeRequest target: 'master'
-                }
+                branch 'master'
             }
             steps {
                 sh "mvn -P '!default,repo-proxy' ${MAVEN_CLI_OPTS} deploy -DskipTests"
