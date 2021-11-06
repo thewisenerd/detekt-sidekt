@@ -17,7 +17,8 @@ class SideKtRuleSetProvider : RuleSetProvider {
             BlockingCallContext(config),
             BlockingCallContextReclaimable(config),
             JerseyMethodParameterDefaultValue(config),
-            JerseyMainThreadBlockingCall(config)
+            JerseyMainThreadBlockingCall(config),
+            ResourceApsecOnboarded(config)
         )
     )
 }
