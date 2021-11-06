@@ -33,15 +33,16 @@ class ResourceOnboardedOnApsec(config: Config) : Rule(config) {
         val hasPathAnnotation = resourceMethod.hasAnnotation("Path")
         val hasAnyOfHttpMethodAnnotation = resourceMethod.hasAnnotation(*httpMethodList)
 
-        if (!hasPathAnnotation && !hasAnyOfHttpMethodAnnotation) {
+        if (hasPathAnnotation.not() && hasAnyOfHttpMethodAnnotation.not()) {
             dbg.i("  hasPathAnnotation=false or none of http method annotation available")
             return
         }
 
+        // Check APSEC annotation is missed.
         var hasApsecAnnotation = resourceMethod.hasAnnotation(*APSEC_ANNOTATION)
 
         if (hasApsecAnnotation.not()) {
-            dbg.i("APSEC annotation is missed for thread")
+            dbg.i("APSEC annotation is missed for resource")
             report(
                 CodeSmell(
                     issue = issue,
