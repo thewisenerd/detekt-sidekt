@@ -24,6 +24,7 @@
         <kotlinx.coroutines.version>1.3.8</kotlinx.coroutines.version>
         <junit.version>4.12</junit.version>
         <detekt.version>1.11.0</detekt.version>
+        <versions.udaan-common>[2.0,3.0)</versions.udaan-common>
     </properties>
 
     <dependencies>
@@ -70,6 +71,12 @@
                     <artifactId>spek-dsl-jvm</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.udaan.common</groupId>
+            <artifactId>common-error-trace</artifactId>
+            <version>${versions.udaan-common}</version>
         </dependency>
     </dependencies>
 
