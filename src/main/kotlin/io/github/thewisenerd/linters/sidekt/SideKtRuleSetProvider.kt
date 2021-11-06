@@ -4,6 +4,7 @@ import io.github.thewisenerd.linters.sidekt.rules.BlockingCallContext
 import io.github.thewisenerd.linters.sidekt.rules.BlockingCallContextReclaimable
 import io.github.thewisenerd.linters.sidekt.rules.JerseyMainThreadBlockingCall
 import io.github.thewisenerd.linters.sidekt.rules.JerseyMethodParameterDefaultValue
+import io.github.thewisenerd.linters.sidekt.rules.ResourceApsecOnboarded
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
