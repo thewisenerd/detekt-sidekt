@@ -11,7 +11,7 @@ class ResourceOnboardedOnApsecTest {
     companion object {
         private val blockingJerseyMethod = ResourceOnboardedOnApsec::class.java.simpleName
 
-        private fun ensureJerseyMethodParameterDefaultValueFindings(
+        private fun ensureResourceOnboardedOnAPSECFindings(
             findings: List<Finding>,
             requiredFindings: List<SourceLocation>
         ) = TestUtils.ensureFindings(blockingJerseyMethod, findings, requiredFindings)
@@ -36,7 +36,7 @@ class ResourceOnboardedOnApsecTest {
     fun testApsecResource() {
         val code = TestUtils.readFile("TestApsecResource.kt")
         val findings = subject.compileAndLintWithContext(TestUtils.env, code)
-        ensureJerseyMethodParameterDefaultValueFindings(
+        ensureResourceOnboardedOnAPSECFindings(
             findings, listOf(
                 SourceLocation(14, 5),
                 SourceLocation(19, 5)
