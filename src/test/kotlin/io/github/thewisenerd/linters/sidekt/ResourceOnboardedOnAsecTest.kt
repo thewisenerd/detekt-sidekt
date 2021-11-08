@@ -1,20 +1,20 @@
 package io.github.thewisenerd.linters.sidekt
-import io.github.thewisenerd.linters.sidekt.rules.ResourceOnboardedOnApsec
+import io.github.thewisenerd.linters.sidekt.rules.ResourceOnboardedOnAsec
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Finding
 import io.gitlab.arturbosch.detekt.api.SourceLocation
 import io.gitlab.arturbosch.detekt.test.compileAndLintWithContext
 import org.junit.Test
 
-class ResourceOnboardedOnApsecTest {
+class ResourceOnboardedOnAsecTest {
 
     companion object {
-        private val blockingJerseyMethod = ResourceOnboardedOnApsec::class.java.simpleName
+        private val resourceOnboardedOnAsec = ResourceOnboardedOnAsec::class.java.simpleName
 
         private fun ensureResourceOnboardedOnAPSECFindings(
             findings: List<Finding>,
             requiredFindings: List<SourceLocation>
-        ) = TestUtils.ensureFindings(blockingJerseyMethod, findings, requiredFindings)
+        ) = TestUtils.ensureFindings(resourceOnboardedOnAsec, findings, requiredFindings)
     }
 
     private val testConfig = object : Config {
@@ -29,7 +29,7 @@ class ResourceOnboardedOnApsecTest {
             }
         }
     }
-    private val subject = ResourceOnboardedOnApsec(testConfig)
+    private val subject = ResourceOnboardedOnAsec(testConfig)
 
 
     @Test

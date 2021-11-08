@@ -5,7 +5,7 @@ import io.gitlab.arturbosch.detekt.api.*
 import io.gitlab.arturbosch.detekt.rules.hasAnnotation
 import org.jetbrains.kotlin.psi.*
 
-class ResourceOnboardedOnApsec(config: Config) : Rule(config) {
+class ResourceOnboardedOnAsec(config: Config) : Rule(config) {
 
     companion object {
         val APSEC_ANNOTATION = arrayOf("UDErrorMonitoredApi")
@@ -19,7 +19,7 @@ class ResourceOnboardedOnApsec(config: Config) : Rule(config) {
     }
 
     override val issue: Issue = Issue(
-        id = ResourceOnboardedOnApsec::class.java.simpleName,
+        id = ResourceOnboardedOnAsec::class.java.simpleName,
         severity = Severity.Performance,
         description = "APSEC annotation is missed resource method",
         debt = Debt.TEN_MINS
@@ -28,7 +28,7 @@ class ResourceOnboardedOnApsec(config: Config) : Rule(config) {
 
     override fun visitNamedFunction(resourceMethod: KtNamedFunction) {
         super.visitNamedFunction(resourceMethod)
-        val dbg = Debugger.make(ResourceOnboardedOnApsec::class.java.simpleName, debugStream)
+        val dbg = Debugger.make(ResourceOnboardedOnAsec::class.java.simpleName, debugStream)
 
         val hasPathAnnotation = resourceMethod.hasAnnotation("Path")
         val hasAnyOfHttpMethodAnnotation = resourceMethod.hasAnnotation(*httpMethodList)
