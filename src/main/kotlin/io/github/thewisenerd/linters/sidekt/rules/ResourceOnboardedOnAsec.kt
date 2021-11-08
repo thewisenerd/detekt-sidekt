@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.*
 class ResourceOnboardedOnAsec(config: Config) : Rule(config) {
 
     companion object {
-        val APSEC_ANNOTATION = arrayOf("UDErrorMonitoredApi")
+        val ASEC_ANNOTATION = arrayOf("UDErrorMonitoredApi")
         val httpMethodList = arrayOf("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
     }
 
@@ -21,7 +21,7 @@ class ResourceOnboardedOnAsec(config: Config) : Rule(config) {
     override val issue: Issue = Issue(
         id = ResourceOnboardedOnAsec::class.java.simpleName,
         severity = Severity.Performance,
-        description = "APSEC annotation is missed resource method",
+        description = "ASEC annotation is missed resource method",
         debt = Debt.TEN_MINS
     )
 
@@ -38,16 +38,16 @@ class ResourceOnboardedOnAsec(config: Config) : Rule(config) {
             return
         }
 
-        // Check APSEC annotation is missed.
-        var hasApsecAnnotation = resourceMethod.hasAnnotation(*APSEC_ANNOTATION)
+        // Check ASEC annotation is missed.
+        var hasAsecAnnotation = resourceMethod.hasAnnotation(*ASEC_ANNOTATION)
 
-        if (hasApsecAnnotation.not()) {
-            dbg.i("APSEC annotation is missed for resource")
+        if (hasAsecAnnotation.not()) {
+            dbg.i("ASEC annotation is missed for resource")
             report(
                 CodeSmell(
                     issue = issue,
                     entity = Entity.from(resourceMethod),
-                    message = "Onboard Resources (${resourceMethod.name} on APSEC))"
+                    message = "Onboard Resources (${resourceMethod.name} on ASEC))"
                 )
             )
         }

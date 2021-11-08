@@ -3,27 +3,27 @@ import com.udaan.error.trace.annotations.UDErrorMonitored
 import com.udaan.error.trace.annotations.UDErrorMonitoredApi
 
 @UDErrorMonitored("1")
-class TestApsecResource {
+class TestAsecResource {
 
     @Path("/variant01")
     @UDErrorMonitoredApi("1", Severity.LOW, false)
-    fun testAPSECVariant01() {
+    fun testASECVariant01() {
         "This is variation 01"
     }
 
     @Path("/variant02")
-    fun testAPSECVariant02(): String {
+    fun testASECVariant02(): String {
         return "This is variation 02"
     }
 
     @GET
-    fun testAPSECVariant03() {
+    fun testASECVariant03() {
         println("This is variation 03")
     }
 
     @GET
     @UDErrorMonitoredApi("1", Severity.LOW, false)
-    fun testAPSECVariant08(): String {
+    fun testASECVariant08(): String {
         println("This is variation 04")
         return ""
     }

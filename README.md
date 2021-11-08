@@ -116,11 +116,11 @@ sidekt:
     active: true
     # debug: 'stderr'
 ```
-## ResourceOnboardedOnApsec
+## ResourceOnboardedOnAsec
 
 ```yml
 sidekt:
-   ResourceOnboardedOnApsec:
+   ResourceOnboardedOnAsec:
     active: true
     # debug: 'stderr'
 ```

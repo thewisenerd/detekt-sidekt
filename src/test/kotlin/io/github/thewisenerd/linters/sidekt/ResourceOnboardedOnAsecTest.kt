@@ -11,7 +11,7 @@ class ResourceOnboardedOnAsecTest {
     companion object {
         private val resourceOnboardedOnAsec = ResourceOnboardedOnAsec::class.java.simpleName
 
-        private fun ensureResourceOnboardedOnAPSECFindings(
+        private fun ensureResourceOnboardedOnASECFindings(
             findings: List<Finding>,
             requiredFindings: List<SourceLocation>
         ) = TestUtils.ensureFindings(resourceOnboardedOnAsec, findings, requiredFindings)
@@ -33,10 +33,10 @@ class ResourceOnboardedOnAsecTest {
 
 
     @Test
-    fun testApsecResource() {
-        val code = TestUtils.readFile("TestApsecResource.kt")
+    fun testAsecResource() {
+        val code = TestUtils.readFile("TestAsecResource.kt")
         val findings = subject.compileAndLintWithContext(TestUtils.env, code)
-        ensureResourceOnboardedOnAPSECFindings(
+        ensureResourceOnboardedOnASECFindings(
             findings, listOf(
                 SourceLocation(14, 5),
                 SourceLocation(19, 5)
