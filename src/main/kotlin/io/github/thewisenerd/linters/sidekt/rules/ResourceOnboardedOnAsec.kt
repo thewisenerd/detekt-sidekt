@@ -20,7 +20,7 @@ class ResourceOnboardedOnAsec(config: Config) : Rule(config) {
 
     override val issue: Issue = Issue(
         id = ResourceOnboardedOnAsec::class.java.simpleName,
-        severity = Severity.Performance,
+        severity = Severity.Maintainability,
         description = "ASEC annotation is missed resource method",
         debt = Debt.TEN_MINS
     )
