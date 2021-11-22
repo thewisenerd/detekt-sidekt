@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 
 class SQLQuerySniffer(config: Config): Rule(config) {
 
-    private val sniffSQLAnnotation = listOf("SqlUpdate", "SqlCreate")
+    private val sniffSQLAnnotation = listOf("SqlUpdate", "SqlCreate", "SqlQuery", "SqlBatch")
     private val stringTemplateMarker = "@UseStringTemplate3StatementLocator"
 
     private var scanResourceFiles = false
