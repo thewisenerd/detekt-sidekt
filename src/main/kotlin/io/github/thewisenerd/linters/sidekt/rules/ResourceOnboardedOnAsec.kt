@@ -47,7 +47,7 @@ class ResourceOnboardedOnAsec(config: Config) : Rule(config) {
                 CodeSmell(
                     issue = issue,
                     entity = Entity.from(resourceMethod),
-                    message = "Onboard Resources ${resourceMethod.name} on ASEC"
+                    message = "Onboard resource(${resourceMethod.name}) on ASEC"
                 )
             )
         }
