@@ -1,7 +1,6 @@
 package io.github.thewisenerd.linters.sidekt.rules
 
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.thewisenerd.linters.sidekt.helpers.Debugger
 import io.gitlab.arturbosch.detekt.api.*
 import org.jetbrains.kotlin.psi.*
@@ -268,7 +267,7 @@ class SQLQuerySniffer(config: Config): Rule(config) {
         private val stringTemplateMarker = "@UseStringTemplate3StatementLocator"
         private var scanResourceFiles = false
 
-        private val objectMapper by lazy { jacksonObjectMapper().registerModule(KotlinModule()) }
+        private val objectMapper by lazy { ObjectMapper() }
     }
 }
 
