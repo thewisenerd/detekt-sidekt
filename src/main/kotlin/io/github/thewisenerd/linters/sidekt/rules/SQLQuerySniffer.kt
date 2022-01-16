@@ -1,5 +1,6 @@
 package io.github.thewisenerd.linters.sidekt.rules
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.thewisenerd.linters.sidekt.helpers.Debugger
@@ -268,7 +269,7 @@ class SQLQuerySniffer(config: Config): Rule(config) {
         private val stringTemplateMarker = "@UseStringTemplate3StatementLocator"
         private var scanResourceFiles = false
 
-        private val objectMapper by lazy { jacksonObjectMapper().registerModule(KotlinModule()) }
+        private val objectMapper by lazy { ObjectMapper() }
     }
 }
 
