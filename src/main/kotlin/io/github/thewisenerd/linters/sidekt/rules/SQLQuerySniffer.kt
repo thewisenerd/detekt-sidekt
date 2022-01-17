@@ -151,6 +151,7 @@ class SQLQuerySniffer(config: Config): Rule(config) {
             newQuery = newQuery.replace("$${key}", value)
         }
         return newQuery
+            .replace("*", "ALL")
     }
 
     private fun getClassAttributeStore(params: List<String>): Map<String, Map<String, String>> {
