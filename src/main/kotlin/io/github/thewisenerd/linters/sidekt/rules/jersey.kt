@@ -53,7 +53,7 @@ class JerseyMethodParameterDefaultValue(config: Config) : Rule(config) {
                 report(
                     CodeSmell(
                         issue = issue,
-                        entity = Entity.from(function),
+                        entity = Entity.from(parameter),
                         message = "probable jersey resource method (${function.name}) has parameter with defaultValue (${parameter.name})"
                     )
                 )
