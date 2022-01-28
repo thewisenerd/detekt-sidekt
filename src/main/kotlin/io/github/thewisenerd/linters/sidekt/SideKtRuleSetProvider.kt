@@ -16,7 +16,9 @@ class SideKtRuleSetProvider : RuleSetProvider {
             JerseyMethodParameterDefaultValue(config),
             JerseyMainThreadBlockingCall(config),
             ResourceOnboardedOnAsec(config),
-            SQLQuerySniffer(config)
+            SQLQuerySniffer(config),
+            ImageQuality(config),
+            ImageWidth(config)
         )
     )
 }
