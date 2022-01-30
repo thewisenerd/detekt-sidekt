@@ -36,7 +36,7 @@ class ImageWidth (config: Config) : Rule(config) {
                 CodeSmell(
                     issue = issue,
                     entity = Entity.from(expression),
-                    message = "Usage of w_768 detected. Please use precise width as per design/UI to avoid high bandwidth usage.."
+                    message = "Usage of w_768 detected. Please use precise width as per design/UI to avoid high bandwidth usage."
                 )
             )
         }
