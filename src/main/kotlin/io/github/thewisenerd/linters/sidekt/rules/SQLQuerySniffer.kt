@@ -65,11 +65,12 @@ class SQLQuerySniffer(config: Config): Rule(config) {
             if (sniffSQLAnnotation.contains(annotationValue)) {
                 val sqlQuery = it.originalElement.text.preProcessAnnotation(annotationValue)
                 val metaDataComment = prepareFunctionParamsWithStore(sqlQuery, function)
+                val linkPrefix = generateAnalyserLink()
                 report(
                     CodeSmell(
                         issue = issue,
                         entity = Entity.Companion.from(function),
-                        message = metaDataComment
+                        message = "${metaDataComment}<br>[Click to Analyse Query](${linkPrefix})"
                     )
                 )
             }
@@ -239,7 +240,27 @@ class SQLQuerySniffer(config: Config): Rule(config) {
         }
     }
 
+    private fun generateAnalyserLink(): String {
+        val baseLink = ruleSetConfig
+            .valueOrNull("analyser-link")
+            ?: "https://tools.udaan.dev/infraprobs/docs-analyser/github-analyser"
+        val prNumber = System.getenv("GH_PR_NUMBER") ?: ""
+        val repoName = System.getenv("GH_REPO") ?: ""
+        return if (prNumber.isNotEmpty() && repoName.isNotEmpty()) {
+            listOf(
+                "<REPO_NAME>" to repoName,
+                "<PULL_NUMBER>" to prNumber
+            ).fold(GITHUB_PR_URL_TEMPLATE) { s: String, it: Pair<String, String> ->
+                s.replace(it.first, it.second)
+            }.let { prUrl ->
+                "${baseLink}?githubPrUrl=${prUrl}"
+            }
+        } else baseLink
+    }
+
     companion object {
+
+        private const val GITHUB_PR_URL_TEMPLATE = "https://github.com/udaan-com/<REPO_NAME>/pull/<PULL_NUMBER>"
 
         private val UDAAN_PACKAGE_DETECT_REGEX = "com.udaan.*".toRegex()
 
