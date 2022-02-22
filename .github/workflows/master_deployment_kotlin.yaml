@@ -1,0 +1,66 @@
+name: main
+'on':
+  push:
+    branches:
+    - master
+    - main
+jobs:
+  setup:
+    runs-on:
+    - self-hosted
+    - runner-controller
+    outputs:
+      runner_name: ${{ steps.start_runner.outputs.runner_name }}
+    steps:
+    - id: start_runner
+      env:
+        WORKER_TYPE: kotlin
+      run: start-runner
+  sonar:
+    needs:
+    - setup
+    uses: udaan-com/shared-workflows/.github/workflows/sonarqube-config.yml@master
+    with:
+      runner_name: ${{ needs.setup.outputs.runner_name }}
+  main:
+    needs:
+    - setup
+    - sonar
+    runs-on: ${{ needs.setup.outputs.runner_name }}
+    env:
+      MAVEN_OPTS: -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
+        -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true -DinstallAtEnd=true
+        -DdeployAtEnd=true
+      MAVEN_CLI_OPTS: -U -B -e -fae -V
+      BUILDAH_FORMAT: docker
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Test
+      run: |
+        echo "Building and running tests"
+        mvn -P '!default,repo-proxy' ${MAVEN_CLI_OPTS} clean test
+    - name: Deploy-Jar
+      if: ${{ !contains(github.event.head_commit.message, '#no_build') }}
+      run: |
+        mvn -P '!default,repo-proxy' ${MAVEN_CLI_OPTS} deploy -DskipTests
+    - name: Sonarqube Analysis
+      if: ${{ !contains(github.event.head_commit.message, '#no_build') }}
+      run: |
+        echo ${{ needs.sonar.outputs.SONAR_URL }}
+        mvn sonar:sonar -Dsonar.host.url=${{ needs.sonar.outputs.SONAR_URL }} -Dsonar.login=${{ secrets.SONAR_KEY }} -Dsonar.projectVersion=${{ steps.vars.outputs.sha_short }} -Dsonar.sources=src/main -Dsonar.java.binaries=.
+    timeout-minutes: 25
+  teardown:
+    needs:
+    - setup
+    - sonar
+    - main
+    if: always()
+    runs-on:
+    - self-hosted
+    - runner-controller
+    steps:
+    - name: teardown runner
+      run: stop-runner ${{ needs.setup.outputs.runner_name }}
