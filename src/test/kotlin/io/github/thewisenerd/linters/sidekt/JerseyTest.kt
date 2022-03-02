@@ -34,8 +34,8 @@ class JerseyTest {
         val code = TestUtils.readFile("simple05.kt")
         val findings = subject.compileAndLintWithContext(TestUtils.env, code)
         ensureJerseyMethodParameterDefaultValueFindings(findings, listOf(
-            SourceLocation(13, 1),
-            SourceLocation(19, 1)
+            SourceLocation(15, 10),
+            SourceLocation(21, 10)
         ))
     }
 
