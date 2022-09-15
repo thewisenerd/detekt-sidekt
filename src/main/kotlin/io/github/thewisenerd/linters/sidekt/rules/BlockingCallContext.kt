@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -226,11 +227,27 @@ class BlockingCallContext(config: Config) : Rule(config) {
             return fromBlockingExceptionTypeFqName(throwBlockingExceptionType, fqName)
         }
 
-        val annotations = descriptor.annotations
-        annotations.forEach { annotation ->
+        val fnAnnotations = descriptor.annotations
+        fnAnnotations.forEach { annotation ->
             val annotationFqName = annotation.fqName
+            dbg.i("  fnAnnotation, $annotationFqName")
             if (annotationFqName != null && annotationFqName in blockingMethodAnnotations) {
-                dbg.i("  hasBlockingAnnotation=true, ${annotation.fqName}")
+                dbg.i("  hasBlockingAnnotation=true, fnAnnotation=${annotation.fqName}")
+                return fromBlockingMethodAnnotationFqName(annotationFqName, fqName)
+            }
+        }
+
+        // todo: figure out .extensionReceiverParameter
+        // todo: figure out superTypes annotations
+        val classOrSuperTypesAnnotations = mutableListOf<AnnotationDescriptor>()
+        val classDescriptor = descriptor.dispatchReceiverParameter
+        val classType = (classDescriptor?.containingDeclaration as? ClassDescriptor)
+        classOrSuperTypesAnnotations += (classType?.annotations?.toList() ?: emptyList())
+        classOrSuperTypesAnnotations.forEach { annotation ->
+            val annotationFqName = annotation.fqName
+            dbg.i("  classAnnotation, $annotationFqName")
+            if (annotationFqName != null && annotationFqName in blockingMethodAnnotations) {
+                dbg.i("  hasBlockingAnnotation=true, classAnnotation=${annotation.fqName}")
                 return fromBlockingMethodAnnotationFqName(annotationFqName, fqName)
             }
         }
