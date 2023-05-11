@@ -49,6 +49,7 @@ sidekt:
     reclaimableMethodFqNames: ['com.custom.wrapper.getSync']
     blockingClassAnnotations: ['com.custom.annotations.BlockingClass']
     blockingClassFqNames: ['com.custom.dao.SomeDao']
+
 ```
 
 ### debug

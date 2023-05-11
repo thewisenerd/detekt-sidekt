@@ -234,7 +234,6 @@ class BlockingCallContext(config: Config) : Rule(config) {
         }
 
         // todo: figure out .extensionReceiverParameter
-        // todo: figure out superTypes annotations
         val classDescriptor = descriptor.dispatchReceiverParameter
         val classType = (classDescriptor?.containingDeclaration as? ClassDescriptor)
 
@@ -245,6 +244,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
             return fromFqName(classFqName)
         }
 
+        // todo: figure out superTypes annotations, current impl only has classType annotations
         val classOrSuperTypesAnnotations = mutableListOf<AnnotationDescriptor>()
         classOrSuperTypesAnnotations += (classType?.annotations?.toList() ?: emptyList())
         classOrSuperTypesAnnotations.forEach { annotation ->
