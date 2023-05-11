@@ -31,12 +31,12 @@ class BlockingCallContext(config: Config) : Rule(config) {
     companion object {
         private const val DEFAULT_IO_DISPATCHER_FQN = "kotlinx.coroutines.Dispatchers.IO"
 
-        private val DEFAULT_BLOCKING_EXCEPTION_TYPES = listOf(
+        private val DEFAULT_BLOCKING_EXCEPTION_TYPES = setOf(
             "java.lang.InterruptedException",
             "java.io.IOException"
         )
 
-        private val DEFAULT_BLOCKING_METHOD_FQ_NAMES = listOf(
+        private val DEFAULT_BLOCKING_METHOD_FQ_NAMES = setOf(
             // non-reclaimable
             "kotlinx.coroutines.runBlocking",
 
@@ -46,7 +46,7 @@ class BlockingCallContext(config: Config) : Rule(config) {
         )
 
         // ideally also show a replaceWith
-        private val DEFAULT_RECLAIMABLE_METHOD_FQ_NAMES = listOf(
+        private val DEFAULT_RECLAIMABLE_METHOD_FQ_NAMES = setOf(
             "java.util.concurrent.CompletableFuture.get",
             "java.lang.Thread.sleep"
         )
@@ -60,49 +60,45 @@ class BlockingCallContext(config: Config) : Rule(config) {
         }
     }
 
-    private val blockingMethodAnnotations by lazy {
-        val annotations = mutableListOf<String>()
-        val extraAnnotations = valueOrNull<ArrayList<String>>("blockingMethodAnnotations")
-        extraAnnotations?.let { annotations.addAll(it) }
-        annotations.toSet().map { FqName(it) }
+    private fun readConfig(key: String, initial: Set<String>? = null): Set<String> {
+        val result = initial?.toMutableSet() ?: mutableSetOf()
+        valueOrNull<ArrayList<String>>(key)?.let {
+            result.addAll(it)
+        }
+        return result
     }
 
-    private val blockingMethodFqNames by lazy {
-        val fqNames = DEFAULT_BLOCKING_METHOD_FQ_NAMES.toMutableList()
-        val extraFqNames = valueOrNull<ArrayList<String>>("blockingMethodFqNames")
-        extraFqNames?.let { fqNames.addAll(it) }
-        fqNames.toSet().map { FqName(it) }
+    private val blockingMethodAnnotations: List<FqName> by lazy {
+        readConfig("blockingMethodAnnotations").map { FqName(it) }
+    }
+
+    private val blockingMethodFqNames: List<FqName> by lazy {
+        readConfig("blockingMethodFqNames", DEFAULT_BLOCKING_METHOD_FQ_NAMES).map { FqName(it) }
     }
 
     private val blockingExceptionTypes by lazy {
-        val types = DEFAULT_BLOCKING_EXCEPTION_TYPES.toMutableList()
-
-        val extraExceptionTypes = valueOrNull<ArrayList<String>>("blockingExceptionTypes")
-        extraExceptionTypes?.let { types.addAll(it) }
-
-        types.toSet().map { FqName(it) }
+        readConfig("blockingExceptionTypes", DEFAULT_BLOCKING_EXCEPTION_TYPES).map { FqName(it) }
     }
 
     private val ioDispatcherFqNames by lazy {
-        val fqNames = mutableListOf(DEFAULT_IO_DISPATCHER_FQN)
-        val extraFqNames = valueOrNull<ArrayList<String>>("ioDispatcherFqNames")
-        extraFqNames?.let { fqNames.addAll(it) }
-
-        fqNames.toSet().map { FqName(it) }
+        readConfig("ioDispatcherFqNames", setOf(DEFAULT_IO_DISPATCHER_FQN)).map { FqName(it) }
     }
 
     private val reclaimableMethodAnnotations by lazy {
-        valueOrNull<ArrayList<String>>("reclaimableMethodAnnotations")?.let { arrayList ->
-            arrayList.toSet().map { FqName(it) }
-        } ?: emptyList()
+        readConfig("reclaimableMethodAnnotations").map { FqName(it) }
     }
 
     // TODO: add tests for this
     private val reclaimableMethodFqNames by lazy {
-        val fqNames = DEFAULT_RECLAIMABLE_METHOD_FQ_NAMES.toMutableList()
-        val extraFqNames = valueOrNull<ArrayList<String>>("reclaimableMethodFqNames")
-        extraFqNames?.let { fqNames.addAll(it) }
-        fqNames.toSet().map { FqName(it) }
+        readConfig("reclaimableMethodFqNames", DEFAULT_RECLAIMABLE_METHOD_FQ_NAMES).map { FqName(it) }
+    }
+
+    private val blockingClassAnnotations: List<FqName> by lazy {
+        readConfig("blockingClassAnnotations").map { FqName(it) }
+    }
+
+    private val blockingClassFqNames: List<FqName> by lazy {
+        readConfig("blockingClassFqNames").map { FqName(it) }
     }
 
     private fun getFqNameFromValueArgument(argument: KtValueArgument): FqName? {
@@ -239,16 +235,24 @@ class BlockingCallContext(config: Config) : Rule(config) {
 
         // todo: figure out .extensionReceiverParameter
         // todo: figure out superTypes annotations
-        val classOrSuperTypesAnnotations = mutableListOf<AnnotationDescriptor>()
         val classDescriptor = descriptor.dispatchReceiverParameter
         val classType = (classDescriptor?.containingDeclaration as? ClassDescriptor)
+
+        val classFqName = classType?.fqNameOrNull()
+        dbg.i("  got classFqName=$classFqName")
+        if (classFqName != null && classFqName in blockingClassFqNames) {
+            dbg.i("  got method in blocking ClassFqName $classFqName")
+            return fromFqName(classFqName)
+        }
+
+        val classOrSuperTypesAnnotations = mutableListOf<AnnotationDescriptor>()
         classOrSuperTypesAnnotations += (classType?.annotations?.toList() ?: emptyList())
         classOrSuperTypesAnnotations.forEach { annotation ->
             val annotationFqName = annotation.fqName
             dbg.i("  classAnnotation, $annotationFqName")
-            if (annotationFqName != null && annotationFqName in blockingMethodAnnotations) {
+            if (annotationFqName != null && annotationFqName in blockingClassAnnotations) {
                 dbg.i("  hasBlockingAnnotation=true, classAnnotation=${annotation.fqName}")
-                return fromBlockingMethodAnnotationFqName(annotationFqName, fqName)
+                return fromBlockingMethodAnnotationFqName(annotationFqName, classFqName)
             }
         }
 

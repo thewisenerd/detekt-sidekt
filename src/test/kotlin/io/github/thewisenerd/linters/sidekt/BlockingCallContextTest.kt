@@ -32,8 +32,14 @@ class BlockingCallContextTest {
                 "blockingMethodAnnotations" -> arrayListOf(
                     "BlockingCall",
                     "RegularBlockingCall",
-                    "ReclaimableBlockingCall",
+                    "ReclaimableBlockingCall"
+                ) as? T
+
+                "blockingClassAnnotations" -> arrayListOf(
                     "BlockingClass"
+                ) as? T
+                "blockingClassFqNames" -> arrayListOf(
+                    "SomeRandomDao"
                 ) as? T
 
                 "blockingMethodFqNames" -> arrayListOf("Test03.foo", "kotlinx.coroutines.runBlocking") as? T
@@ -136,5 +142,14 @@ class BlockingCallContextTest {
                 SourceLocation(base01 + 21, 14)
             )
         )
+    }
+
+    @Test
+    fun simple07() {
+        val code = TestUtils.readFile("simple07.kt")
+        val findings = subject.compileAndLintWithContext(TestUtils.env, code)
+        ensureBlockingCallContextFindings(findings, listOf(
+            SourceLocation(11, 13)
+        ))
     }
 }
