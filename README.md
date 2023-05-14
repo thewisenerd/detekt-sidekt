@@ -48,6 +48,8 @@ sidekt:
     ioDispatcherFqNames: ['com.custom.Dispatchers.DB']
     reclaimableMethodAnnotations: ['com.custom.annotations.ReclaimableBlockingCall']
     reclaimableMethodFqNames: ['com.custom.wrapper.getSync']
+    blockingClassAnnotations: ['com.custom.annotations.BlockingClass']
+    blockingClassFqNames: ['com.custom.dao.SomeDao']
 
 ```
 
@@ -87,6 +89,19 @@ already provide non-blocking method alternatives. such methods may be annotated 
 ### reclaimableMethodFqNames
 
 same as `reclaimableMethodAnnotations`, but allowing you to provide FQ names to the methods
+
+### blockingClassAnnotations
+
+these are the annotations which you may use in your code to denote blocking classes.
+
+similar to [blockingMethodAnnotations](#blockingMethodAnnotations), for classes.
+
+### blockingClassFqNames
+
+in case the annotations marking the class as blocking cannot be inferred (probably due to annotation retention at SOURCE), then,
+such known classes' FQ names can be configured.
+
+similar to [blockingMethodFqNames](#blockingMethodFqNames), for classes.
 
 ## JerseyMethodParameterDefaultValue
 
