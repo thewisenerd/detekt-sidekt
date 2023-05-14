@@ -14,7 +14,10 @@ class BlockingCallContextTest {
         private fun ensureBlockingCallContextFindings(findings: List<Finding>, requiredFindings: List<SourceLocation>) =
             TestUtils.ensureFindings(blockingCallContextClassName, findings, requiredFindings)
 
-        private fun ensureReclaimableBlockingCallContextFindings(findings: List<Finding>, requiredFindings: List<SourceLocation>) =
+        private fun ensureReclaimableBlockingCallContextFindings(
+            findings: List<Finding>,
+            requiredFindings: List<SourceLocation>
+        ) =
             TestUtils.ensureFindings("${blockingCallContextClassName}-Reclaimable", findings, requiredFindings)
     }
 
@@ -26,7 +29,19 @@ class BlockingCallContextTest {
             return when (key) {
                 "active" -> true as? T
                 "debug" -> "stderr" as? T
-                "blockingMethodAnnotations" -> arrayListOf("BlockingCall", "RegularBlockingCall", "ReclaimableBlockingCall") as? T
+                "blockingMethodAnnotations" -> arrayListOf(
+                    "BlockingCall",
+                    "RegularBlockingCall",
+                    "ReclaimableBlockingCall"
+                ) as? T
+
+                "blockingClassAnnotations" -> arrayListOf(
+                    "BlockingClass"
+                ) as? T
+                "blockingClassFqNames" -> arrayListOf(
+                    "SomeRandomDao"
+                ) as? T
+
                 "blockingMethodFqNames" -> arrayListOf("Test03.foo", "kotlinx.coroutines.runBlocking") as? T
                 "reclaimableMethodAnnotations" -> arrayListOf("ReclaimableBlockingCall") as? T
                 "ioDispatcherFqNames" -> arrayListOf("CustomDispatchers.DB") as? T
@@ -94,5 +109,47 @@ class BlockingCallContextTest {
                 SourceLocation(43, 26)
             )
         )
+    }
+
+    @Test
+    fun simple06() {
+        val code = TestUtils.readFile("simple06.kt")
+        val base01 = 89
+        val findings = subject.compileAndLintWithContext(TestUtils.env, code)
+        ensureBlockingCallContextFindings(
+            findings, listOf(
+                SourceLocation(base01 + 0, 20),
+                // SourceLocation(base01+1, 20),
+                SourceLocation(base01 + 2, 20),
+                SourceLocation(base01 + 3, 20),
+
+                SourceLocation(base01 + 5, 14),
+                SourceLocation(base01 + 6, 14),
+                SourceLocation(base01 + 7, 14),
+                SourceLocation(base01 + 8, 14),
+
+                SourceLocation(base01 + 10, 20),
+                SourceLocation(base01 + 11, 20),
+                SourceLocation(base01 + 12, 20),
+
+                SourceLocation(base01 + 14, 26),
+
+                // SourceLocation(base01 + 16, 14)
+
+                SourceLocation(base01 + 18, 14),
+                // SourceLocation(base01 + 19, 14),
+                SourceLocation(base01 + 20, 14),
+                SourceLocation(base01 + 21, 14)
+            )
+        )
+    }
+
+    @Test
+    fun simple07() {
+        val code = TestUtils.readFile("simple07.kt")
+        val findings = subject.compileAndLintWithContext(TestUtils.env, code)
+        ensureBlockingCallContextFindings(findings, listOf(
+            SourceLocation(11, 13)
+        ))
     }
 }
