@@ -114,7 +114,7 @@ class BlockingCallContextTest {
     @Test
     fun simple06() {
         val code = TestUtils.readFile("simple06.kt")
-        val base01 = 89
+        val base01 = 146
         val findings = subject.compileAndLintWithContext(TestUtils.env, code)
         ensureBlockingCallContextFindings(
             findings, listOf(
