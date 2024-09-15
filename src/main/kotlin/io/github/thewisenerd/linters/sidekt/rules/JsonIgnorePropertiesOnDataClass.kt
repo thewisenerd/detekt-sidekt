@@ -17,7 +17,7 @@ class JsonIgnorePropertiesOnDataClass(config: Config) : Rule(config) {
     }
 
     override val issue: Issue = Issue(
-        id = JsonIgnoreOnDataClass::class.java.simpleName,
+        id = JsonIgnorePropertiesOnDataClass::class.java.simpleName,
         severity = Severity.Maintainability,
         description = "JsonIgnoreProperties is not annotated on the data class",
         debt = Debt.FIVE_MINS,
