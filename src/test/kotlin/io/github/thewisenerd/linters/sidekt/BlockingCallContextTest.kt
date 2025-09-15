@@ -65,9 +65,10 @@ class BlockingCallContextTest {
                 SourceLocation(69, 15),
                 SourceLocation(75, 15)
             ).minus(
-                listOf( // kotlinx-coroutines-core dep in classpath
+                listOf(
+                    // TODO: figure out what we wanted to do here; iirc, this is reclaimable?
                     SourceLocation(43, 15),
-                    SourceLocation(75, 15)
+                    // SourceLocation(75, 15) // this is no longer applicable since this is now working..
                 )
             )
         )
